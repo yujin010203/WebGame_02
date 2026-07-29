@@ -9,6 +9,7 @@ import { ObstacleField } from './obstacles.js';
 import { Fever } from './fever.js';
 import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
+import { createUI } from './ui.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -31,16 +32,39 @@ window.addEventListener('resize', resize);
 resize();
 const dust = new DustField(CONFIG.WIDTH, CONFIG.HEIGHT);
 const input = createPointerInput(canvas);
-const trail = new ParticleSystem();
-const player = new Player(CONFIG.WIDTH / 2, CONFIG.HEIGHT * 0.7);
-const stars = new StarField();
-const items = new ItemField();
-const obstacles = new ObstacleField();
-const burst = new ParticleSystem();
-const fever = new Fever();
 const hud = new Hud();
 const shake = new ScreenShake();
-const state = { stars: 0, feverKills: 0, elapsedSec: 0 };
+
+let scene = 'START';
+let trail, player, stars, items, obstacles, burst, fever, state;
+
+function resetGame() {
+  trail = new ParticleSystem();
+  player = new Player(CONFIG.WIDTH / 2, CONFIG.HEIGHT * 0.7);
+  stars = new StarField();
+  items = new ItemField();
+  obstacles = new ObstacleField();
+  burst = new ParticleSystem();
+  fever = new Fever();
+  state = { stars: 0, feverKills: 0, elapsedSec: 0, score: 0, nickname: state?.nickname ?? '' };
+}
+
+const ui = createUI({
+  onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; ui.showIntro(() => { scene = 'PLAYING'; }); },
+  onRestart: () => { scene = 'START'; ui.showStart(); },
+});
+
+function onGameOver() {
+  ui.showGameOver({
+    survivedSec: state.elapsedSec,
+    score: state.score,
+    stars: state.stars,
+    rankingHtml: '<li class="loading">랭킹 준비 중…</li>',
+  });
+}
+
+resetGame();
+ui.showStart();
 
 let last = performance.now();
 function frame(now) {
@@ -52,8 +76,8 @@ function frame(now) {
 }
 
 function update(dt) {
-  // 씬 상태머신은 Task 12에서 채운다. 지금은 빈 루프.
   dust.update(dt);
+  if (scene !== 'PLAYING') return;
   player.update(dt, input.target.x, input.target.y, trail);
   trail.update(dt);
   stars.update(dt, 1);
@@ -75,6 +99,10 @@ function update(dt) {
   shake.update(dt);
   state.elapsedSec += dt;
   state.score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
+  if (player.hp <= 0) {
+    scene = 'GAMEOVER';
+    onGameOver();
+  }
 }
 
 function render() {

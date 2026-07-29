@@ -9,6 +9,32 @@
 <body>
   <div id="stage">
     <canvas id="game"></canvas>
+    <div id="overlay" class="overlay hidden">
+      <!-- 시작 화면 -->
+      <div id="screen-start" class="screen">
+        <h1>루미<span>Lumi</span></h1>
+        <p class="story">별빛을 모아 나만의 작은 우주를 채워요.</p>
+        <p class="howto">마우스·손가락으로 루미를 움직여 노란 별빛을 모으고, 붉은 빛과 먼지를 피하세요.</p>
+        <input id="nickname" maxlength="12" placeholder="닉네임 입력" />
+        <button id="btn-start">시작</button>
+      </div>
+      <!-- 인트로 -->
+      <div id="screen-intro" class="screen hidden">
+        <p class="intro-text">새벽, 모두가 잠든 밤.<br/>아기 유령 루미는 아침이 오기 전<br/>떨어진 별빛을 모아야 해요.</p>
+      </div>
+      <!-- 게임오버 -->
+      <div id="screen-over" class="screen hidden">
+        <h2>아침이 밝았어요</h2>
+        <div class="result">
+          <div><b id="r-time">0</b><span>버틴 시간(초)</span></div>
+          <div><b id="r-score">0</b><span>최종 점수</span></div>
+          <div><b id="r-stars">0</b><span>모은 별</span></div>
+        </div>
+        <h3>랭킹 Top 10</h3>
+        <ol id="ranking"><li class="loading">불러오는 중…</li></ol>
+        <button id="btn-restart">다시 하기</button>
+      </div>
+    </div>
   </div>
   <script type="module" src="js/main.js"></script>
 </body>
