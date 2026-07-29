@@ -1590,7 +1590,7 @@ if (!fever.active && obstacles.hitsPlayer(player)) {
 ```js
 const items_got = items.collect(player, burst);
 if (items_got.shield) player.shielded = true;
-if (items_got.wave) { state.feverKills += 0; obstacles.destroyAll(burst); }
+if (items_got.wave) obstacles.destroyAll(burst);
 ```
 시간/점수:
 ```js
