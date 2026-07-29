@@ -3,6 +3,8 @@ import { CONFIG } from './config.js';
 import { DustField, ParticleSystem } from './particles.js';
 import { Player } from './player.js';
 import { createPointerInput } from './input.js';
+import { StarField } from './stars.js';
+import { ItemField } from './items.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -27,6 +29,9 @@ const dust = new DustField(CONFIG.WIDTH, CONFIG.HEIGHT);
 const input = createPointerInput(canvas);
 const trail = new ParticleSystem();
 const player = new Player(CONFIG.WIDTH / 2, CONFIG.HEIGHT * 0.7);
+const stars = new StarField();
+const items = new ItemField();
+const burst = new ParticleSystem();
 
 let last = performance.now();
 function frame(now) {
@@ -42,6 +47,12 @@ function update(dt) {
   dust.update(dt);
   player.update(dt, input.target.x, input.target.y, trail);
   trail.update(dt);
+  stars.update(dt, 1);
+  items.update(dt, 1);
+  const got = stars.collect(player, burst);
+  if (got) player.heal(CONFIG.hp.starHeal);
+  items.collect(player, burst);
+  burst.update(dt);
 }
 
 function render() {
@@ -49,6 +60,9 @@ function render() {
   ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
   dust.draw(ctx);
   trail.draw(ctx);
+  stars.draw(ctx);
+  items.draw(ctx);
+  burst.draw(ctx);
   player.draw(ctx);
 }
 
