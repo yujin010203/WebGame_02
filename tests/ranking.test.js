@@ -13,6 +13,12 @@ test('닉네임: 빈 값은 Guest', () => {
   assert.equal(normalizeNickname(''), 'Guest');
 });
 
+test('닉네임: Firestore 문서 id에 부적합한 문자 제거', () => {
+  assert.equal(normalizeNickname('a/b'), 'ab');
+  assert.equal(normalizeNickname('.'), 'Guest');
+  assert.equal(normalizeNickname('..'), 'Guest');
+});
+
 test('최고점: 기존 없음/더 높음일 때 true', () => {
   assert.equal(isNewBest(null, 100), true);
   assert.equal(isNewBest(undefined, 0), true);

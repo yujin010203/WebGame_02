@@ -41,6 +41,7 @@ audio.load();
 
 let scene = 'START';
 let trail, player, stars, items, obstacles, burst, fever, state;
+let gameOverSeq = 0;
 
 function resetGame() {
   trail = new ParticleSystem();
@@ -51,6 +52,8 @@ function resetGame() {
   burst = new ParticleSystem();
   fever = new Fever();
   state = { stars: 0, feverKills: 0, elapsedSec: 0, score: 0, nickname: state?.nickname ?? '' };
+  shake.t = 0;
+  shake.intensity = 0;
 }
 
 const ui = createUI({
@@ -59,6 +62,7 @@ const ui = createUI({
 });
 
 async function onGameOver() {
+  const token = ++gameOverSeq;
   audio.stopBgm();
   const score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
   ui.showGameOver({
@@ -69,10 +73,12 @@ async function onGameOver() {
   });
   try {
     await submitScore({ nickname: state.nickname, score, stars: state.stars, survivedSec: state.elapsedSec });
+  } catch {}
+  try {
     const top = await fetchTop10();
-    document.getElementById('ranking').innerHTML = rankingToHtml(top, state.nickname);
+    if (token === gameOverSeq) document.getElementById('ranking').innerHTML = rankingToHtml(top, state.nickname);
   } catch {
-    document.getElementById('ranking').innerHTML = rankingToHtml([], state.nickname);
+    if (token === gameOverSeq) document.getElementById('ranking').innerHTML = rankingToHtml([], state.nickname);
   }
 }
 
