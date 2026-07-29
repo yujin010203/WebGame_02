@@ -1,5 +1,6 @@
 // js/main.js
 import { CONFIG } from './config.js';
+import { DustField } from './particles.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -20,6 +21,7 @@ function resize() {
 }
 window.addEventListener('resize', resize);
 resize();
+const dust = new DustField(CONFIG.WIDTH, CONFIG.HEIGHT);
 
 let last = performance.now();
 function frame(now) {
@@ -32,11 +34,13 @@ function frame(now) {
 
 function update(dt) {
   // 씬 상태머신은 Task 12에서 채운다. 지금은 빈 루프.
+  dust.update(dt);
 }
 
 function render() {
   ctx.fillStyle = CONFIG.BG;
   ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
+  dust.draw(ctx);
   // 확인용 임시 텍스트
   ctx.fillStyle = '#8899ff';
   ctx.font = '20px system-ui';
