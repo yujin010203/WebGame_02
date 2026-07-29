@@ -9,6 +9,7 @@ import { ObstacleField } from './obstacles.js';
 import { Fever } from './fever.js';
 import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
+import { difficultyAt } from './difficulty.js';
 import { createUI } from './ui.js';
 import { audio } from './audio.js';
 import { submitScore, fetchTop10, rankingToHtml } from './firebase.js';
@@ -92,8 +93,9 @@ function update(dt) {
   if (scene !== 'PLAYING') return;
   player.update(dt, input.target.x, input.target.y, trail);
   trail.update(dt);
-  stars.update(dt, 1);
-  items.update(dt, 1);
+  const diff = difficultyAt(state.elapsedSec);
+  stars.update(dt, diff.spawnMult);
+  items.update(dt, diff.spawnMult);
   const got = stars.collect(player, burst);
   if (got) {
     player.heal(CONFIG.hp.starHeal * got);
@@ -105,7 +107,7 @@ function update(dt) {
   const items_got = items.collect(player, burst);
   if (items_got.shield) { player.shielded = true; audio.play('item'); }
   if (items_got.wave) { obstacles.destroyAll(burst); audio.play('item'); }
-  obstacles.update(dt, player, { speedMult: 1, spawnMult: 1 });
+  obstacles.update(dt, player, { speedMult: diff.speedMult, spawnMult: diff.spawnMult });
   if (fever.active) {
     state.feverKills += obstacles.feverCollide(player, burst);
   } else if (obstacles.hitsPlayer(player)) {
