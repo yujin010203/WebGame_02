@@ -6,6 +6,7 @@ import { createPointerInput } from './input.js';
 import { StarField } from './stars.js';
 import { ItemField } from './items.js';
 import { ObstacleField } from './obstacles.js';
+import { Fever } from './fever.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -34,6 +35,8 @@ const stars = new StarField();
 const items = new ItemField();
 const obstacles = new ObstacleField();
 const burst = new ParticleSystem();
+const fever = new Fever();
+const state = { stars: 0, feverKills: 0 };
 
 let last = performance.now();
 function frame(now) {
@@ -52,10 +55,12 @@ function update(dt) {
   stars.update(dt, 1);
   items.update(dt, 1);
   const got = stars.collect(player, burst);
-  if (got) player.heal(CONFIG.hp.starHeal);
+  if (got) { player.heal(CONFIG.hp.starHeal * got); fever.addStars(got); state.stars += got; }
   items.collect(player, burst);
   obstacles.update(dt, player, { speedMult: 1, spawnMult: 1 });
-  if (obstacles.hitsPlayer(player)) player.hit(CONFIG.hp.hitDamage);
+  if (fever.active) { state.feverKills += obstacles.feverCollide(player, burst); }
+  else if (obstacles.hitsPlayer(player)) { player.hit(CONFIG.hp.hitDamage); }
+  fever.update(dt);
   burst.update(dt);
 }
 
@@ -68,7 +73,7 @@ function render() {
   items.draw(ctx);
   obstacles.draw(ctx);
   burst.draw(ctx);
-  player.draw(ctx);
+  player.draw(ctx, { fever: fever.active });
 }
 
 requestAnimationFrame(frame);
