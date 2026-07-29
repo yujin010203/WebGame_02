@@ -5,6 +5,7 @@ import { Player } from './player.js';
 import { createPointerInput } from './input.js';
 import { StarField } from './stars.js';
 import { ItemField } from './items.js';
+import { ObstacleField } from './obstacles.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -31,6 +32,7 @@ const trail = new ParticleSystem();
 const player = new Player(CONFIG.WIDTH / 2, CONFIG.HEIGHT * 0.7);
 const stars = new StarField();
 const items = new ItemField();
+const obstacles = new ObstacleField();
 const burst = new ParticleSystem();
 
 let last = performance.now();
@@ -52,6 +54,8 @@ function update(dt) {
   const got = stars.collect(player, burst);
   if (got) player.heal(CONFIG.hp.starHeal);
   items.collect(player, burst);
+  obstacles.update(dt, player, { speedMult: 1, spawnMult: 1 });
+  if (obstacles.hitsPlayer(player)) player.hit(CONFIG.hp.hitDamage);
   burst.update(dt);
 }
 
@@ -62,6 +66,7 @@ function render() {
   trail.draw(ctx);
   stars.draw(ctx);
   items.draw(ctx);
+  obstacles.draw(ctx);
   burst.draw(ctx);
   player.draw(ctx);
 }
