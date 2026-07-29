@@ -10,6 +10,7 @@ import { Fever } from './fever.js';
 import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
 import { createUI } from './ui.js';
+import { audio } from './audio.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -34,6 +35,7 @@ const dust = new DustField(CONFIG.WIDTH, CONFIG.HEIGHT);
 const input = createPointerInput(canvas);
 const hud = new Hud();
 const shake = new ScreenShake();
+audio.load();
 
 let scene = 'START';
 let trail, player, stars, items, obstacles, burst, fever, state;
@@ -50,11 +52,12 @@ function resetGame() {
 }
 
 const ui = createUI({
-  onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; ui.showIntro(() => { scene = 'PLAYING'; }); },
+  onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; audio.startBgm(); ui.showIntro(() => { scene = 'PLAYING'; }); },
   onRestart: () => { scene = 'START'; ui.showStart(); },
 });
 
 function onGameOver() {
+  audio.stopBgm();
   ui.showGameOver({
     survivedSec: state.elapsedSec,
     score: state.score,
@@ -83,16 +86,22 @@ function update(dt) {
   stars.update(dt, 1);
   items.update(dt, 1);
   const got = stars.collect(player, burst);
-  if (got) { player.heal(CONFIG.hp.starHeal * got); fever.addStars(got); state.stars += got; }
+  if (got) {
+    player.heal(CONFIG.hp.starHeal * got);
+    const feverTriggered = fever.addStars(got);
+    state.stars += got;
+    audio.play('star');
+    if (feverTriggered) audio.play('fever');
+  }
   const items_got = items.collect(player, burst);
-  if (items_got.shield) player.shielded = true;
-  if (items_got.wave) obstacles.destroyAll(burst);
+  if (items_got.shield) { player.shielded = true; audio.play('item'); }
+  if (items_got.wave) { obstacles.destroyAll(burst); audio.play('item'); }
   obstacles.update(dt, player, { speedMult: 1, spawnMult: 1 });
   if (fever.active) {
     state.feverKills += obstacles.feverCollide(player, burst);
   } else if (obstacles.hitsPlayer(player)) {
     if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
-    else if (player.hit(CONFIG.hp.hitDamage)) { shake.trigger(12); }
+    else if (player.hit(CONFIG.hp.hitDamage)) { shake.trigger(12); audio.play('hit'); }
   }
   fever.update(dt);
   burst.update(dt);
