@@ -11,6 +11,7 @@ import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
 import { createUI } from './ui.js';
 import { audio } from './audio.js';
+import { submitScore, fetchTop10, rankingToHtml } from './firebase.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -56,14 +57,22 @@ const ui = createUI({
   onRestart: () => { scene = 'START'; ui.showStart(); },
 });
 
-function onGameOver() {
+async function onGameOver() {
   audio.stopBgm();
+  const score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
   ui.showGameOver({
     survivedSec: state.elapsedSec,
-    score: state.score,
+    score,
     stars: state.stars,
-    rankingHtml: '<li class="loading">랭킹 준비 중…</li>',
+    rankingHtml: '<li class="loading">불러오는 중…</li>',
   });
+  try {
+    await submitScore({ nickname: state.nickname, score, stars: state.stars, survivedSec: state.elapsedSec });
+    const top = await fetchTop10();
+    document.getElementById('ranking').innerHTML = rankingToHtml(top, state.nickname);
+  } catch {
+    document.getElementById('ranking').innerHTML = rankingToHtml([], state.nickname);
+  }
 }
 
 resetGame();
