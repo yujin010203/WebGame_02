@@ -7,6 +7,8 @@ import { StarField } from './stars.js';
 import { ItemField } from './items.js';
 import { ObstacleField } from './obstacles.js';
 import { Fever } from './fever.js';
+import { Hud, ScreenShake } from './hud.js';
+import { computeScore } from './scoring.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -36,7 +38,9 @@ const items = new ItemField();
 const obstacles = new ObstacleField();
 const burst = new ParticleSystem();
 const fever = new Fever();
-const state = { stars: 0, feverKills: 0 };
+const hud = new Hud();
+const shake = new ScreenShake();
+const state = { stars: 0, feverKills: 0, elapsedSec: 0 };
 
 let last = performance.now();
 function frame(now) {
@@ -56,15 +60,25 @@ function update(dt) {
   items.update(dt, 1);
   const got = stars.collect(player, burst);
   if (got) { player.heal(CONFIG.hp.starHeal * got); fever.addStars(got); state.stars += got; }
-  items.collect(player, burst);
+  const items_got = items.collect(player, burst);
+  if (items_got.shield) player.shielded = true;
+  if (items_got.wave) obstacles.destroyAll(burst);
   obstacles.update(dt, player, { speedMult: 1, spawnMult: 1 });
-  if (fever.active) { state.feverKills += obstacles.feverCollide(player, burst); }
-  else if (obstacles.hitsPlayer(player)) { player.hit(CONFIG.hp.hitDamage); }
+  if (fever.active) {
+    state.feverKills += obstacles.feverCollide(player, burst);
+  } else if (obstacles.hitsPlayer(player)) {
+    if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
+    else if (player.hit(CONFIG.hp.hitDamage)) { shake.trigger(12); }
+  }
   fever.update(dt);
   burst.update(dt);
+  shake.update(dt);
+  state.elapsedSec += dt;
+  state.score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
 }
 
 function render() {
+  shake.apply(ctx);
   ctx.fillStyle = CONFIG.BG;
   ctx.fillRect(0, 0, CONFIG.WIDTH, CONFIG.HEIGHT);
   dust.draw(ctx);
@@ -74,6 +88,8 @@ function render() {
   obstacles.draw(ctx);
   burst.draw(ctx);
   player.draw(ctx, { fever: fever.active });
+  shake.restore(ctx);
+  hud.draw(ctx, { hp: player.hp, score: state.score, stars: state.stars, feverProgress: fever.progress, feverActive: fever.active });
 }
 
 requestAnimationFrame(frame);
