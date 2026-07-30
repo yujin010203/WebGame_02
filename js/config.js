@@ -28,7 +28,7 @@ export const CONFIG = {
   player: {
     baseRadius: 22,
     minSizeRatio: 0.5,   // HP 0%일 때 크기 비율
-    lerp: 0.12,          // 감속 추적 계수
+    lerp: 0.09,          // 감속 추적 계수
     baseShadowBlur: 40,
     trailPerSec: 40,     // 초당 트레일 파티클 방출 수 (HP 100% 기준)
   },
@@ -36,12 +36,13 @@ export const CONFIG = {
   star: {
     spawnIntervalSec: 1.4,
     radius: 11,
+    lifeSec: 5,
   },
 
   obstacle: {
     laser: { warnSec: 1, activeSec: 0.35, thickness: 14 },
     orb: { speed: 70, radius: 16, lifeSec: 5 },
-    rain: { speed: 320, radius: 7 },
+    rain: { speed: 320, radius: 5 },
     baseSpawnIntervalSec: 1.6,
   },
 
@@ -54,6 +55,7 @@ export const CONFIG = {
   items: {
     shieldChancePerSpawn: 0.06,  // 별 스폰 시 쉴드로 대체될 확률
     waveChancePerSpawn: 0.04,    // 별똥별 파동 확률
+    lifeSec: 3,
   },
 
   background: {
