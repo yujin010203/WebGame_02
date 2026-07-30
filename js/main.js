@@ -58,11 +58,13 @@ function resetGame() {
 
 const ui = createUI({
   onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; audio.startBgm(); ui.showIntro(() => { scene = 'PLAYING'; }); },
-  onRestart: () => { scene = 'START'; ui.showStart(); },
+  onRestart: () => { resetGame(); scene = 'PLAYING'; ui.hideAll(); audio.startBgm(); },
+  onHome: () => { scene = 'START'; ui.showStart(); },
 });
 
 async function onGameOver() {
   const token = ++gameOverSeq;
+  shake.t = 0; shake.intensity = 0;
   audio.stopBgm();
   const score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
   ui.showGameOver({

@@ -1,5 +1,5 @@
 // js/ui.js
-export function createUI({ onStart, onRestart }) {
+export function createUI({ onStart, onRestart, onHome }) {
   const overlay = document.getElementById('overlay');
   const sStart = document.getElementById('screen-start');
   const sIntro = document.getElementById('screen-intro');
@@ -8,6 +8,7 @@ export function createUI({ onStart, onRestart }) {
 
   document.getElementById('btn-start').addEventListener('click', () => onStart(nickname.value));
   document.getElementById('btn-restart').addEventListener('click', () => onRestart());
+  document.getElementById('btn-home').addEventListener('click', () => onHome());
 
   const show = (el) => el.classList.remove('hidden');
   const hide = (el) => el.classList.add('hidden');
