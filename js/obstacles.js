@@ -59,10 +59,11 @@ export class ObstacleField {
         life: CONFIG.obstacle.orb.lifeSec,
       });
     } else {
-      const n = 3 + Math.floor(Math.random() * 4);
+      const n = 3 + Math.floor(Math.random() * 3); // 3~5개
+      const xs = rainXPositions(n, W);
       for (let i = 0; i < n; i++) {
         this.list.push({
-          kind: 'rain', x: Math.random() * W, y: -10 - i * 30,
+          kind: 'rain', x: xs[i], y: -10 - i * 30,
           radius: CONFIG.obstacle.rain.radius, speed: CONFIG.obstacle.rain.speed * speedMult,
         });
       }
@@ -141,4 +142,13 @@ export class ObstacleField {
     }
     ctx.restore();
   }
+}
+
+export function rainXPositions(n, width, rng = Math.random) {
+  const cell = width / n;
+  const xs = [];
+  for (let i = 0; i < n; i++) {
+    xs.push(cell * (i + 0.15 + rng() * 0.7)); // 각 셀 15%~85% 지점
+  }
+  return xs;
 }
