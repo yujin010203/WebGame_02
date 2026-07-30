@@ -9,7 +9,7 @@ import { ObstacleField } from './obstacles.js';
 import { Fever } from './fever.js';
 import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
-import { difficultyAt } from './difficulty.js';
+import { difficultyAt, difficultyLevel } from './difficulty.js';
 import { createUI } from './ui.js';
 import { audio } from './audio.js';
 import { submitScore, fetchTop10, rankingToHtml } from './firebase.js';
@@ -143,7 +143,14 @@ function render() {
   burst.draw(ctx);
   player.draw(ctx, { fever: fever.active });
   shake.restore(ctx);
-  hud.draw(ctx, { hp: player.hp, score: state.score, stars: state.stars, feverProgress: fever.progress, feverActive: fever.active });
+  if (scene === 'PLAYING') {
+    hud.draw(ctx, {
+      hp: player.hp, score: state.score, stars: state.stars,
+      level: difficultyLevel(state.elapsedSec),
+      feverProgress: fever.progress, feverActive: fever.active,
+      feverRemainingSec: fever.remainingSec, feverDurationSec: CONFIG.fever.durationSec,
+    });
+  }
 }
 
 requestAnimationFrame(frame);
