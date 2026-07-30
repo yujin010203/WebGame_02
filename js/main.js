@@ -101,7 +101,7 @@ function update(dt) {
   trail.update(dt);
   const diff = difficultyAt(state.elapsedSec);
   stars.update(dt, diff.spawnMult, burst);
-  items.update(dt, diff.spawnMult);
+  items.update(dt, diff.spawnMult, burst, player.shielded);
   const got = stars.collect(player, burst);
   if (got) {
     player.heal(CONFIG.hp.starHeal * got);
