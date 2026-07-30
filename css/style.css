@@ -27,8 +27,8 @@ html, body {
 }
 .overlay.hidden, .screen.hidden { display: none; }
 .screen { max-width: 90%; }
-.screen h1 { font-family: 'Jua', system-ui, sans-serif; font-size: 38px; letter-spacing: 1px; }
-.screen h1 span { display: block; font-family: 'Jua', system-ui, sans-serif; font-size: 15px; color: #c9a9ff; letter-spacing: 5px; }
+.screen h1 { font-size: 38px; letter-spacing: 1px; }
+.screen h1 span { display: block; font-size: 15px; color: #c9a9ff; letter-spacing: 5px; }
 .story { margin: 10px 0 4px; font-size: 14px; color: #cbd5ff; }
 .howto { font-size: 12px; color: #94a3c8; margin-bottom: 14px; }
 #nickname {
@@ -71,7 +71,7 @@ html, body {
   padding: 22px 24px; max-width: 320px; width: 100%; text-align: left; color: #e6ecff;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
 }
-.modal-card h3 { font-family: 'Jua', system-ui, sans-serif; font-size: 20px; margin-bottom: 12px; text-align: center; }
+.modal-card h3 { font-size: 20px; margin-bottom: 12px; text-align: center; }
 .modal-card h4 { font-size: 14px; margin: 14px 0 6px; color: #c9a9ff; }
 .help-list { list-style: none; padding: 0; font-size: 13px; line-height: 1.7; color: #cbd5ff; }
 .help-list b { color: #fff; }

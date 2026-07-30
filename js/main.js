@@ -128,7 +128,11 @@ function update(dt) {
   obstacles.update(dt, player, { speedMult: diff.speedMult, spawnMult: diff.spawnMult });
   if (fever.active) {
     state.feverKills += obstacles.feverCollide(player, burst);
-  } else if (obstacles.hitsPlayer(player)) {
+  } else if (obstacles.laserHitsPlayer(player)) {
+    // 빨간선(레이저): 방어막이 있으면 1회 막고, 없으면 즉시 게임오버
+    if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
+    else { player.hp = 0; shake.trigger(12); audio.play('hit'); }
+  } else if (obstacles.nonLaserHitsPlayer(player)) {
     if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
     else if (player.hit(CONFIG.hp.hitDamage)) { shake.trigger(12); audio.play('hit'); }
   }

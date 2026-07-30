@@ -7,8 +7,8 @@ export const CONFIG = {
   hp: {
     max: 100,
     start: 100,
-    hitDamage: 15,
-    starHeal: 10,
+    hitDamage: 10,
+    starHeal: 5,
     invulnSec: 1,       // 피격 후 무적 시간
     dangerRatio: 0.2,   // 이하에서 깜빡임
   },
@@ -28,7 +28,7 @@ export const CONFIG = {
   player: {
     baseRadius: 22,
     minSizeRatio: 0.5,   // HP 0%일 때 크기 비율
-    lerp: 0.09,          // 감속 추적 계수
+    lerp: 0.12,          // 감속 추적 계수
     baseShadowBlur: 40,
     trailPerSec: 40,     // 초당 트레일 파티클 방출 수 (HP 100% 기준)
   },

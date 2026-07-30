@@ -70,10 +70,6 @@ export class ObstacleField {
     }
   }
 
-  _isDamaging(o) {
-    return o.kind !== 'laser' || o.state === 'active';
-  }
-
   _overlapPlayer(o, player) {
     if (o.kind === 'laser') {
       if (o.state !== 'active') return false;
@@ -82,8 +78,14 @@ export class ObstacleField {
     return circlesOverlap(player.x, player.y, player.radius, o.x, o.y, o.radius);
   }
 
-  hitsPlayer(player) {
-    return this.list.some((o) => this._isDamaging(o) && this._overlapPlayer(o, player));
+  // 레이저(빨간선) 활성 충돌 — 닿으면 즉사
+  laserHitsPlayer(player) {
+    return this.list.some((o) => o.kind === 'laser' && this._overlapPlayer(o, player));
+  }
+
+  // 레이저 외 장애물(오브/소나기) 충돌 — HP 감소
+  nonLaserHitsPlayer(player) {
+    return this.list.some((o) => o.kind !== 'laser' && this._overlapPlayer(o, player));
   }
 
   destroyAll(burst) {

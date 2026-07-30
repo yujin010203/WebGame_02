@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rainXPositions } from '../js/obstacles.js';
+import { rainXPositions, ObstacleField } from '../js/obstacles.js';
 
 test('소나기: x좌표가 셀 단위로 고르게 분산', () => {
   const n = 5, W = 450;
@@ -24,4 +24,27 @@ test('소나기: 인덱스별 난수가 달라도 각 방울이 자기 셀 안�
   for (let i = 1; i < n; i++) {
     assert.ok(xs[i] > xs[i - 1]);
   }
+});
+
+test('레이저 활성 충돌: laserHitsPlayer만 true (즉사 판정)', () => {
+  const field = new ObstacleField();
+  const player = { x: 200, y: 100, radius: 22 };
+  field.list.push({ kind: 'laser', state: 'active', t: 0, x1: 0, y1: 100, x2: 450, y2: 100 });
+  assert.equal(field.laserHitsPlayer(player), true);
+  assert.equal(field.nonLaserHitsPlayer(player), false);
+});
+
+test('레이저 경고(warn) 상태는 충돌로 치지 않음', () => {
+  const field = new ObstacleField();
+  const player = { x: 200, y: 100, radius: 22 };
+  field.list.push({ kind: 'laser', state: 'warn', t: 0, x1: 0, y1: 100, x2: 450, y2: 100 });
+  assert.equal(field.laserHitsPlayer(player), false);
+});
+
+test('오브 충돌: nonLaserHitsPlayer만 true (HP 감소 판정)', () => {
+  const field = new ObstacleField();
+  const player = { x: 200, y: 200, radius: 22 };
+  field.list.push({ kind: 'orb', x: 200, y: 200, radius: 16, speed: 70, life: 5 });
+  assert.equal(field.nonLaserHitsPlayer(player), true);
+  assert.equal(field.laserHitsPlayer(player), false);
 });
