@@ -10,17 +10,29 @@ const randY = () => PAD + Math.random() * (CONFIG.HEIGHT - PAD * 2);
 export class ItemField {
   constructor() { this.items = []; this.timer = 0; }
 
-  update(dt, spawnMult = 1) {
+  update(dt, spawnMult = 1, burst = null, playerShielded = false) {
     this.timer += dt;
-    // 별과 같은 주기 기준으로 확률 롤
     const interval = CONFIG.star.spawnIntervalSec * spawnMult;
     if (this.timer >= interval) {
       this.timer = 0;
       const roll = Math.random();
       if (roll < CONFIG.items.shieldChancePerSpawn) {
-        this.items.push({ x: randX(), y: randY(), type: 'shield', radius: 16 });
+        const shieldExists = this.items.some((it) => it.type === 'shield');
+        if (!playerShielded && !shieldExists) {
+          this.items.push({ x: randX(), y: randY(), type: 'shield', radius: 16, age: 0 });
+        }
       } else if (roll < CONFIG.items.shieldChancePerSpawn + CONFIG.items.waveChancePerSpawn) {
-        this.items.push({ x: randX(), y: randY(), type: 'wave', radius: 16 });
+        this.items.push({ x: randX(), y: randY(), type: 'wave', radius: 16, age: 0 });
+      }
+    }
+    for (let i = this.items.length - 1; i >= 0; i--) {
+      const it = this.items[i];
+      it.age += dt;
+      if (it.age >= CONFIG.items.lifeSec) {
+        if (burst) burst.emit(it.x, it.y, { count: 6, speed: 30, life: 0.4, size: 2,
+          color: it.type === 'shield' ? '#6a8296' : '#96667f' });
+        this.items[i] = this.items[this.items.length - 1];
+        this.items.pop();
       }
     }
   }

@@ -9,7 +9,7 @@ import { ObstacleField } from './obstacles.js';
 import { Fever } from './fever.js';
 import { Hud, ScreenShake } from './hud.js';
 import { computeScore } from './scoring.js';
-import { difficultyAt } from './difficulty.js';
+import { difficultyAt, difficultyLevel } from './difficulty.js';
 import { createUI } from './ui.js';
 import { audio } from './audio.js';
 import { submitScore, fetchTop10, rankingToHtml } from './firebase.js';
@@ -58,11 +58,23 @@ function resetGame() {
 
 const ui = createUI({
   onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; audio.startBgm(); ui.showIntro(() => { scene = 'PLAYING'; }); },
-  onRestart: () => { scene = 'START'; ui.showStart(); },
+  onRestart: () => { resetGame(); scene = 'PLAYING'; ui.hideAll(); audio.startBgm(); },
+  onHome: () => { resetGame(); scene = 'START'; ui.showStart(); },
+  onHelp: () => ui.showHelp(),
+  onRanking: async () => {
+    ui.showRankingModal();
+    try {
+      const top = await fetchTop10();
+      ui.setRankingView(rankingToHtml(top, state.nickname));
+    } catch {
+      ui.setRankingView(rankingToHtml([], state.nickname));
+    }
+  },
 });
 
 async function onGameOver() {
   const token = ++gameOverSeq;
+  shake.t = 0; shake.intensity = 0;
   audio.stopBgm();
   const score = computeScore({ stars: state.stars, feverKills: state.feverKills, survivedSec: state.elapsedSec });
   ui.showGameOver({
@@ -100,8 +112,8 @@ function update(dt) {
   player.update(dt, input.target.x, input.target.y, trail);
   trail.update(dt);
   const diff = difficultyAt(state.elapsedSec);
-  stars.update(dt, diff.spawnMult);
-  items.update(dt, diff.spawnMult);
+  stars.update(dt, diff.spawnMult, burst);
+  items.update(dt, diff.spawnMult, burst, player.shielded);
   const got = stars.collect(player, burst);
   if (got) {
     player.heal(CONFIG.hp.starHeal * got);
@@ -143,7 +155,14 @@ function render() {
   burst.draw(ctx);
   player.draw(ctx, { fever: fever.active });
   shake.restore(ctx);
-  hud.draw(ctx, { hp: player.hp, score: state.score, stars: state.stars, feverProgress: fever.progress, feverActive: fever.active });
+  if (scene === 'PLAYING') {
+    hud.draw(ctx, {
+      hp: player.hp, score: state.score, stars: state.stars,
+      level: difficultyLevel(state.elapsedSec),
+      feverProgress: fever.progress, feverActive: fever.active,
+      feverRemainingSec: fever.remainingSec, feverDurationSec: CONFIG.fever.durationSec,
+    });
+  }
 }
 
 requestAnimationFrame(frame);

@@ -22,3 +22,10 @@ test('config: 유령 최소 크기 비율 0.5, 위험 임계 0.2', () => {
   assert.equal(CONFIG.player.minSizeRatio, 0.5);
   assert.equal(CONFIG.hp.dangerRatio, 0.2);
 });
+
+test('config: 조정된 값(lerp/rain/수명)', () => {
+  assert.equal(CONFIG.player.lerp, 0.09);
+  assert.equal(CONFIG.obstacle.rain.radius, 5);
+  assert.equal(CONFIG.star.lifeSec, 5);
+  assert.equal(CONFIG.items.lifeSec, 3);
+});
