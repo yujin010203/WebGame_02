@@ -60,6 +60,16 @@ const ui = createUI({
   onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; audio.startBgm(); ui.showIntro(() => { scene = 'PLAYING'; }); },
   onRestart: () => { resetGame(); scene = 'PLAYING'; ui.hideAll(); audio.startBgm(); },
   onHome: () => { scene = 'START'; ui.showStart(); },
+  onHelp: () => ui.showHelp(),
+  onRanking: async () => {
+    ui.showRankingModal();
+    try {
+      const top = await fetchTop10();
+      ui.setRankingView(rankingToHtml(top, state.nickname));
+    } catch {
+      ui.setRankingView(rankingToHtml([], state.nickname));
+    }
+  },
 });
 
 async function onGameOver() {
