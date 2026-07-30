@@ -1,0 +1,48 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+  background: #050914;
+  overflow: hidden;
+  touch-action: none;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+#stage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#game {
+  display: block;
+  background: #0F172A;
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(80, 120, 255, 0.15);
+}
+.overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 12, 28, 0.82);
+  color: #e6ecff; text-align: center; padding: 24px;
+}
+.overlay.hidden, .screen.hidden { display: none; }
+.screen { max-width: 90%; }
+.screen h1 { font-size: 44px; letter-spacing: 2px; }
+.screen h1 span { display: block; font-size: 16px; color: #c9a9ff; letter-spacing: 6px; }
+.story { margin: 14px 0 6px; color: #cbd5ff; }
+.howto { font-size: 13px; color: #94a3c8; margin-bottom: 18px; }
+#nickname {
+  display: block; width: 220px; margin: 0 auto 14px; padding: 12px;
+  border-radius: 10px; border: 1px solid #33406a; background: #131a33; color: #fff; text-align: center;
+}
+.overlay button {
+  padding: 12px 32px; border: none; border-radius: 24px; cursor: pointer;
+  background: linear-gradient(90deg, #b9f6ff, #ff9ed8); color: #10203a; font-weight: 700; font-size: 16px;
+}
+.intro-text { font-size: 20px; line-height: 1.8; color: #dbe4ff; }
+.result { display: flex; gap: 18px; justify-content: center; margin: 16px 0; }
+.result b { display: block; font-size: 26px; }
+.result span { font-size: 12px; color: #94a3c8; }
+#ranking { text-align: left; max-width: 260px; margin: 8px auto 18px; padding-left: 20px; font-size: 14px; }
+#ranking li { padding: 3px 0; display: flex; justify-content: space-between; }
+#ranking li.me { color: #ffe27a; font-weight: 700; }
