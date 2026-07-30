@@ -59,7 +59,7 @@ function resetGame() {
 const ui = createUI({
   onStart: (raw) => { resetGame(); state.nickname = raw; scene = 'INTRO'; audio.startBgm(); ui.showIntro(() => { scene = 'PLAYING'; }); },
   onRestart: () => { resetGame(); scene = 'PLAYING'; ui.hideAll(); audio.startBgm(); },
-  onHome: () => { scene = 'START'; ui.showStart(); },
+  onHome: () => { resetGame(); scene = 'START'; ui.showStart(); },
   onHelp: () => ui.showHelp(),
   onRanking: async () => {
     ui.showRankingModal();
