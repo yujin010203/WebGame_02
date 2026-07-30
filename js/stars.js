@@ -9,12 +9,21 @@ const randY = () => PAD + Math.random() * (CONFIG.HEIGHT - PAD * 2);
 export class StarField {
   constructor() { this.stars = []; this.timer = 0; }
 
-  update(dt, spawnMult = 1) {
+  update(dt, spawnMult = 1, burst = null) {
     this.timer += dt;
     const interval = CONFIG.star.spawnIntervalSec * spawnMult;
     if (this.timer >= interval) {
       this.timer = 0;
-      this.stars.push({ x: randX(), y: randY(), radius: CONFIG.star.radius, phase: Math.random() * 6.28 });
+      this.stars.push({ x: randX(), y: randY(), radius: CONFIG.star.radius, phase: Math.random() * 6.28, age: 0 });
+    }
+    for (let i = this.stars.length - 1; i >= 0; i--) {
+      const s = this.stars[i];
+      s.age += dt;
+      if (s.age >= CONFIG.star.lifeSec) {
+        if (burst) burst.emit(s.x, s.y, { count: 6, speed: 30, life: 0.4, size: 2, color: '#8a7a4a' });
+        this.stars[i] = this.stars[this.stars.length - 1];
+        this.stars.pop();
+      }
     }
   }
 

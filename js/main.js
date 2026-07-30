@@ -100,7 +100,7 @@ function update(dt) {
   player.update(dt, input.target.x, input.target.y, trail);
   trail.update(dt);
   const diff = difficultyAt(state.elapsedSec);
-  stars.update(dt, diff.spawnMult);
+  stars.update(dt, diff.spawnMult, burst);
   items.update(dt, diff.spawnMult);
   const got = stars.collect(player, burst);
   if (got) {
