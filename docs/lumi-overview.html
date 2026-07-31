@@ -1,0 +1,568 @@
+<title>루미(Lumi) — 기획 · 구현 · 트러블슈팅</title>
+<style>
+  :root {
+    color-scheme: dark;
+    /* type */
+    --font-body: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+    --font-mono: 'Cascadia Code', 'D2Coding', ui-monospace, 'SF Mono', Menlo, monospace;
+    --fs-eyebrow: .74rem;
+    --fs-small: .84rem;
+    --fs-base: 1.02rem;
+    --fs-lead: 1.18rem;
+    --fs-h3: 1.32rem;
+    --fs-h2: clamp(1.6rem, 3.2vw, 2.1rem);
+    --fs-hero: clamp(2.5rem, 6.5vw, 4.4rem);
+
+    /* night (dark) — the game's own world: deep-blue sky before dawn */
+    --bg: #0a0f1e;
+    --bg-2: #0f1830;
+    --sky-top: #0b1226;
+    --sky-bot: #131f3d;
+    --surface: #131d38;
+    --surface-2: #18244560;
+    --line: #26355c;
+    --line-soft: #1d2a4d;
+    --ink: #eef2fb;
+    --ink-2: #c3cbe4;
+    --muted: #8590b3;          /* blue-biased neutral */
+    --star: #ffd35a;           /* starlight — primary accent */
+    --star-soft: #ffe49a;
+    --glow: #a78bfa;           /* supernova / fever — lavender */
+    --glow-soft: #c4b3fb;
+    --danger: #ff5d72;         /* laser */
+    --ok: #57d9a3;
+    --shadow: 0 18px 50px -22px rgba(0,0,0,.75);
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      color-scheme: light;
+      /* dawn (light) — the moment Lumi races against */
+      --bg: #f2f0fb;
+      --bg-2: #eae7f7;
+      --sky-top: #e9e6f8;
+      --sky-bot: #f6eefb;
+      --surface: #ffffff;
+      --surface-2: #ffffffb0;
+      --line: #ded8f0;
+      --line-soft: #eae5f7;
+      --ink: #1a1f38;
+      --ink-2: #3d4468;
+      --muted: #6b6a88;
+      --star: #c7920a;
+      --star-soft: #a9790a;
+      --glow: #7a56d6;
+      --glow-soft: #6a45c9;
+      --danger: #d63a52;
+      --ok: #1c9e73;
+      --shadow: 0 16px 40px -24px rgba(46,38,86,.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0a0f1e; --bg-2: #0f1830; --sky-top:#0b1226; --sky-bot:#131f3d;
+    --surface:#131d38; --surface-2:#18244560; --line:#26355c; --line-soft:#1d2a4d;
+    --ink:#eef2fb; --ink-2:#c3cbe4; --muted:#8590b3;
+    --star:#ffd35a; --star-soft:#ffe49a; --glow:#a78bfa; --glow-soft:#c4b3fb;
+    --danger:#ff5d72; --ok:#57d9a3; --shadow:0 18px 50px -22px rgba(0,0,0,.75);
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg:#f2f0fb; --bg-2:#eae7f7; --sky-top:#e9e6f8; --sky-bot:#f6eefb;
+    --surface:#ffffff; --surface-2:#ffffffb0; --line:#ded8f0; --line-soft:#eae5f7;
+    --ink:#1a1f38; --ink-2:#3d4468; --muted:#6b6a88;
+    --star:#c7920a; --star-soft:#a9790a; --glow:#7a56d6; --glow-soft:#6a45c9;
+    --danger:#d63a52; --ok:#1c9e73; --shadow:0 16px 40px -24px rgba(46,38,86,.45);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .page {
+    font-family: var(--font-body);
+    font-size: var(--fs-base);
+    line-height: 1.72;
+    color: var(--ink-2);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  #sky {
+    position: fixed; inset: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bot) 60%, var(--bg));
+  }
+  .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 22px; }
+  .col { max-width: 680px; }
+
+  /* ---- hero ---- */
+  .hero { padding: clamp(64px, 13vh, 128px) 0 40px; }
+  .eyebrow {
+    font-size: var(--fs-eyebrow); letter-spacing: .28em; text-transform: uppercase;
+    font-weight: 700; color: var(--star); margin: 0 0 22px;
+    display: flex; align-items: center; gap: .8em;
+  }
+  .eyebrow::before {
+    content: ""; width: 26px; height: 1px; background: currentColor; opacity: .6;
+  }
+  h1 {
+    font-family: var(--font-body); font-weight: 800;
+    font-size: var(--fs-hero); line-height: 1.02; letter-spacing: -.02em;
+    color: var(--ink); margin: 0 0 4px; text-wrap: balance;
+  }
+  h1 .en { color: var(--star); }
+  .hero .sub {
+    font-size: var(--fs-lead); color: var(--ink-2); margin: 18px 0 0; max-width: 33ch;
+    text-wrap: balance;
+  }
+  :root[data-theme="dark"] h1, :root:not([data-theme="light"]) h1 {
+    text-shadow: 0 0 34px rgba(255,211,90,.16);
+  }
+  @media (prefers-color-scheme: light) { h1 { text-shadow: none; } }
+
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; list-style: none; padding: 0;
+  }
+  .stats li {
+    font-family: var(--font-mono); font-size: var(--fs-small);
+    color: var(--ink-2); background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px;
+    backdrop-filter: blur(6px);
+  }
+  .stats b { color: var(--star); font-weight: 700; }
+
+  /* ---- toc ---- */
+  nav.toc {
+    display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 40px 0 8px;
+    padding: 16px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft);
+    font-size: var(--fs-small);
+  }
+  nav.toc a {
+    color: var(--muted); text-decoration: none; font-variant-numeric: tabular-nums;
+    display: inline-flex; gap: .55em; transition: color .15s;
+  }
+  nav.toc a .n { color: var(--star); font-family: var(--font-mono); font-size: .82em; }
+  nav.toc a:hover { color: var(--ink); }
+
+  /* ---- sections ---- */
+  section { padding: 58px 0; border-top: 1px solid var(--line-soft); }
+  section:first-of-type { border-top: 0; }
+  .kicker {
+    font-family: var(--font-mono); font-size: var(--fs-eyebrow); letter-spacing: .2em;
+    text-transform: uppercase; color: var(--glow); margin: 0 0 12px; font-weight: 600;
+  }
+  h2 {
+    font-size: var(--fs-h2); font-weight: 800; letter-spacing: -.015em; color: var(--ink);
+    margin: 0 0 6px; line-height: 1.15; text-wrap: balance;
+  }
+  .section-lead { color: var(--muted); margin: 0 0 30px; max-width: 60ch; }
+  h3 {
+    font-size: var(--fs-h3); font-weight: 700; color: var(--ink); letter-spacing: -.01em;
+    margin: 38px 0 10px;
+  }
+  p { margin: 0 0 16px; max-width: 66ch; }
+  a.inline { color: var(--star); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--star) 40%, transparent); }
+  strong { color: var(--ink); font-weight: 700; }
+  code {
+    font-family: var(--font-mono); font-size: .88em; color: var(--star-soft);
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    padding: .08em .42em; border-radius: 5px;
+  }
+
+  ul.clean { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 12px; }
+  ul.clean > li { position: relative; padding-left: 22px; max-width: 64ch; }
+  ul.clean > li::before {
+    content: ""; position: absolute; left: 2px; top: .62em; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--star); box-shadow: 0 0 8px var(--star);
+  }
+
+  /* decision cards */
+  .decisions { display: grid; gap: 12px; margin: 8px 0 4px; }
+  .decision {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .decision h4 { margin: 0 0 4px; font-size: 1.02rem; color: var(--ink); font-weight: 700; }
+  .decision p { margin: 0; color: var(--muted); font-size: var(--fs-small); max-width: none; }
+
+  /* table */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: var(--fs-small); min-width: 460px; background: var(--surface); }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line-soft); }
+  thead th {
+    font-family: var(--font-mono); font-size: var(--fs-eyebrow); letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--bg-2);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.el { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  td .v { font-family: var(--font-mono); color: var(--star-soft); font-variant-numeric: tabular-nums; }
+  .dot { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-right: .5em; vertical-align: baseline; }
+
+  /* flow diagram */
+  .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px; margin: 6px 0 22px; }
+  .flow .node {
+    flex: 1 1 120px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px; text-align: center;
+  }
+  .flow .node b { display: block; color: var(--ink); font-size: .96rem; }
+  .flow .node span { font-size: var(--fs-small); color: var(--muted); }
+  .flow .arrow { align-self: center; color: var(--glow); font-size: 1.3rem; }
+  @media (max-width: 620px) { .flow .arrow { transform: rotate(90deg); } .flow .node { flex-basis: 100%; } }
+
+  /* module grid */
+  .modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; }
+  .mod {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  }
+  .mod code { background: none; border: 0; padding: 0; color: var(--star); font-size: .9rem; font-weight: 600; }
+  .mod p { margin: 5px 0 0; font-size: var(--fs-small); color: var(--muted); max-width: none; }
+
+  /* troubleshooting cards */
+  .ts { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+  .case {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 24px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .case::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(var(--danger), var(--glow));
+  }
+  .case .cn { font-family: var(--font-mono); font-size: var(--fs-eyebrow); color: var(--danger); letter-spacing: .1em; }
+  .case h4 { margin: 4px 0 16px; font-size: 1.14rem; color: var(--ink); font-weight: 700; letter-spacing: -.01em; }
+  .case dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; }
+  .case dt {
+    font-family: var(--font-mono); font-size: var(--fs-eyebrow); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); padding-top: 3px;
+  }
+  .case dt.symptom { color: var(--danger); }
+  .case dt.cause { color: var(--star); }
+  .case dt.fix { color: var(--ok); }
+  .case dd { margin: 0; color: var(--ink-2); font-size: var(--fs-small); }
+  .case dd code { font-size: .84em; }
+  .commit {
+    display: inline-block; margin-top: 14px; font-family: var(--font-mono); font-size: var(--fs-eyebrow);
+    color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px;
+  }
+  @media (max-width: 520px) {
+    .case dl { grid-template-columns: 1fr; gap: 3px 0; }
+    .case dd { margin-bottom: 12px; }
+  }
+
+  /* tuning timeline */
+  .tune { border-left: 2px solid var(--line); margin: 8px 0 0; padding: 0; list-style: none; }
+  .tune li { position: relative; padding: 0 0 20px 26px; }
+  .tune li::before {
+    content: ""; position: absolute; left: -7px; top: 4px; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--glow);
+  }
+  .tune li:last-child { padding-bottom: 0; }
+  .tune .h { color: var(--ink); font-weight: 700; }
+  .tune .c { font-family: var(--font-mono); font-size: var(--fs-eyebrow); color: var(--muted); margin-left: 8px; }
+  .tune p { margin: 3px 0 0; font-size: var(--fs-small); color: var(--muted); }
+
+  .yagni { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .yagni span {
+    font-size: var(--fs-small); color: var(--muted); background: var(--surface-2);
+    border: 1px dashed var(--line); border-radius: 8px; padding: 6px 12px;
+    text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--danger) 55%, transparent);
+  }
+
+  footer {
+    padding: 40px 0 70px; border-top: 1px solid var(--line-soft); margin-top: 30px;
+    color: var(--muted); font-size: var(--fs-small);
+  }
+  footer b { color: var(--ink-2); }
+
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 5;
+    font-family: var(--font-mono); font-size: var(--fs-eyebrow); letter-spacing: .05em;
+    background: var(--surface); color: var(--ink-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 14px; cursor: pointer; backdrop-filter: blur(6px);
+  }
+  .theme-toggle:hover { color: var(--ink); border-color: var(--star); }
+  :focus-visible { outline: 2px solid var(--star); outline-offset: 3px; border-radius: 3px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="page">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="테마 전환">◐ 테마</button>
+
+  <div class="wrap">
+
+    <header class="hero col">
+      <p class="eyebrow">Project Overview · 웹게임</p>
+      <h1>루미 <span class="en">Lumi</span></h1>
+      <p class="sub">새벽이 오기 전, 떨어진 별빛을 모으는 아기 유령. 기획부터 구현, 트러블슈팅까지 한 장에 정리했습니다.</p>
+      <ul class="stats">
+        <li><b>Vanilla JS</b> · ES Modules</li>
+        <li><b>Canvas 2D</b> · 450×800</li>
+        <li><b>Firebase</b> Firestore 랭킹</li>
+        <li>유닛 테스트 <b>42</b></li>
+        <li>JS 모듈 <b>17</b></li>
+      </ul>
+    </header>
+
+    <nav class="toc col" aria-label="목차">
+      <a href="#concept"><span class="n">01</span> 기획 · 컨셉</a>
+      <a href="#arch"><span class="n">02</span> 아키텍처</a>
+      <a href="#mechanics"><span class="n">03</span> 메커니즘 · 밸런스</a>
+      <a href="#flow"><span class="n">04</span> 씬 흐름 · 랭킹</a>
+      <a href="#build"><span class="n">05</span> 구현 · 모듈</a>
+      <a href="#trouble"><span class="n">06</span> 트러블슈팅</a>
+      <a href="#tuning"><span class="n">07</span> 밸런스 튜닝</a>
+    </nav>
+
+    <!-- 01 -->
+    <section id="concept" class="col">
+      <p class="kicker">01 · 기획</p>
+      <h2>몽글몽글한 네온 아케이드, 힐링과 몽환 사이</h2>
+      <p class="section-lead">HTML5 Canvas + Vanilla JavaScript로 만드는 탑다운 2D 감성 미니게임. 모바일 세로 비율(9:16 근사) 우선.</p>
+      <p><strong>스토리.</strong> 모두가 잠든 밤, 작은 아기 유령 <strong>루미</strong>는 아침이 오기 전까지 밤하늘에서 떨어진 조각난 별빛을 모아 자신만의 작은 우주를 채웁니다. 딥 블루 밤하늘(<code>#0F172A</code>)에 떠다니는 먼지 입자, 이동 시 은은한 꼬리 잔상 — 힐링되면서도 몽환적인 분위기가 목표였습니다.</p>
+
+      <h3>확정된 결정 사항</h3>
+      <div class="decisions">
+        <div class="decision"><h4>점수 공식</h4><p>별 ×100 + 피버 파괴 ×200 + 생존 초당 +10 (게임오버 시 합산)</p></div>
+        <div class="decision"><h4>온라인 랭킹</h4><p>Firebase Firestore. 코드는 <code>firebaseConfig</code>만 채우면 동작하도록 준비, 미설정 시 랭킹만 비활성화.</p></div>
+        <div class="decision"><h4>사운드</h4><p><code>assets/audio/</code> 훅만 제공. mp3를 넣으면 재생, 없으면 무음(no-op).</p></div>
+        <div class="decision"><h4>그래픽</h4><p>외부 이미지 없이 전부 Canvas 절차적 드로잉. Retina는 <code>devicePixelRatio</code>로 대응.</p></div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section id="arch" class="col">
+      <p class="kicker">02 · 아키텍처</p>
+      <h2>엔티티 배열 + 씬 상태머신</h2>
+      <p class="section-lead">이 규모에 ECS나 God-object는 과설계·유지보수 문제로 배제하고, 단순한 두 축으로 구성했습니다.</p>
+      <ul class="clean">
+        <li><strong>엔티티 배열.</strong> 별 · 장애물 · 파티클을 배열에 담고 매 프레임 <code>update(dt)</code> / <code>draw(ctx)</code>로 순회.</li>
+        <li><strong>씬 상태머신.</strong> <code>START → INTRO → PLAYING → GAMEOVER</code> 상태값으로 화면 전환을 제어.</li>
+        <li><strong>게임 루프.</strong> <code>requestAnimationFrame</code> + <code>deltaTime</code> 보정으로 기기별 프레임 편차 흡수.</li>
+        <li><strong>고정 내부 해상도.</strong> 450×800으로 그린 뒤 CSS 레터박스로 스케일링.</li>
+        <li><strong>입력 통합.</strong> <code>pointermove</code> 하나로 마우스·터치를 통합, 목표점을 <code>lerp</code> 감속 추적.</li>
+        <li><strong>UI 분리.</strong> 게임 화면은 Canvas, 시작/게임오버 오버레이(닉네임·Top10)는 DOM으로 처리.</li>
+        <li><strong>Graceful degradation.</strong> Firebase·오디오 파일이 없어도 게임은 끊김 없이 동작 — 설계의 핵심 견고성 원칙.</li>
+      </ul>
+    </section>
+
+    <!-- 03 -->
+    <section id="mechanics" class="col">
+      <p class="kicker">03 · 메커니즘</p>
+      <h2>밸런스는 전부 <code>config.js</code> 한 곳에</h2>
+      <p class="section-lead">수치를 한 파일에 모아 튜닝을 쉽게 했습니다. 아래는 현재 적용값입니다.</p>
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr><th>요소</th><th>효과</th><th>수치</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="el"><span class="dot" style="background:var(--star)"></span>별빛</td><td>모으면 회복 + 점수 + 피버 게이지</td><td><span class="v">HP +5 · +100점</span></td></tr>
+            <tr><td class="el"><span class="dot" style="background:var(--danger)"></span>붉은 빛(레이저)</td><td>경고선 후 발사, 닿으면 즉시 게임오버</td><td><span class="v">즉사</span></td></tr>
+            <tr><td class="el"><span class="dot" style="background:var(--glow)"></span>먼지(유도 오브)</td><td>유령을 5초간 추적</td><td><span class="v">HP −30</span></td></tr>
+            <tr><td class="el"><span class="dot" style="background:#5aa9ff"></span>빗방울(소나기)</td><td>위에서 3~5개가 고르게 낙하</td><td><span class="v">HP −20</span></td></tr>
+            <tr><td class="el">방어막</td><td>피격 1회 무효(레이저 포함)</td><td><span class="v">희귀 6%</span></td></tr>
+            <tr><td class="el">파동</td><td>화면 내 장애물 일괄 제거</td><td><span class="v">희귀 4%</span></td></tr>
+            <tr><td class="el">피버(슈퍼노바)</td><td>별 10개 → 무적 + 파괴당 +200</td><td><span class="v">5초 무적</span></td></tr>
+            <tr><td class="el">난이도</td><td>스폰 잦아짐 + 속도 최대 2.8배</td><td><span class="v">180초에 Lv1→Lv10</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>HP ↔ 유령 비주얼 연동</h3>
+      <p>HP가 줄면 유령 크기가 소폭 작아지고(최저 50%), 후광(<code>shadowBlur</code>)과 투명도가 감소하며, HP 20% 이하에서는 위험 깜빡임 연출이 들어갑니다. 상태를 숫자가 아니라 유령의 모습으로 읽게 하는 것이 핵심.</p>
+    </section>
+
+    <!-- 04 -->
+    <section id="flow" class="col">
+      <p class="kicker">04 · 흐름 &amp; 데이터</p>
+      <h2>씬 흐름과 랭킹 스키마</h2>
+      <div class="flow">
+        <div class="node"><b>START</b><span>타이틀 · 닉네임 · 도움말/랭킹 모달</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>INTRO</b><span>세계관 2~3초</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>PLAYING</b><span>게임 루프</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>GAMEOVER</b><span>결과 · Top10</span></div>
+      </div>
+      <p>게임오버 시 점수 계산 → Firebase 제출 → Top10 조회 → 오버레이 표시 순으로 진행합니다. 랭킹은 <strong>닉네임당 최고점만</strong> 보장해야 했습니다.</p>
+      <h3>Firestore 설계</h3>
+      <ul class="clean">
+        <li>컬렉션 <code>scores</code>, <strong>문서 ID = 정규화된 닉네임</strong> → 닉네임당 1개 문서로 최고점만 유지.</li>
+        <li>필드 <code>{ nickname, score, stars, survivedSec, createdAt }</code>.</li>
+        <li>제출은 <strong>트랜잭션</strong>으로 기존 <code>score</code> &lt; 신규일 때만 덮어쓰기, 조회는 <code>orderBy(score, desc) limit(10)</code>.</li>
+        <li><code>apiKey</code>는 비밀값이 아니며 접근 제어는 Firestore 보안 규칙으로 처리.</li>
+      </ul>
+    </section>
+
+    <!-- 05 -->
+    <section id="build" class="col">
+      <p class="kicker">05 · 구현</p>
+      <h2>단일 책임 모듈 + 테스트 우선</h2>
+      <p class="section-lead">순수 로직(충돌·점수·난이도·랭킹)을 먼저 테스트로 고정하고, 브라우저 의존부(Canvas·모달)는 실행 스모크로 확인했습니다. 커밋은 기능 단위로 잘게 쌓았습니다.</p>
+      <div class="modules">
+        <div class="mod"><code>main.js</code><p>게임 루프 · 씬 상태머신 · 리사이즈</p></div>
+        <div class="mod"><code>config.js</code><p>모든 밸런스 상수 한 곳에</p></div>
+        <div class="mod"><code>player.js</code><p>lerp 이동 · HP연동 비주얼 · 트레일</p></div>
+        <div class="mod"><code>obstacles.js</code><p>레이저 · 유도 오브 · 소나기</p></div>
+        <div class="mod"><code>stars.js</code><p>별 스폰 · 획득 · 수명(5초)</p></div>
+        <div class="mod"><code>items.js</code><p>방어막 · 파동 · 중복 스폰 방지</p></div>
+        <div class="mod"><code>fever.js</code><p>피버 게이지 · 슈퍼노바 무적</p></div>
+        <div class="mod"><code>difficulty.js</code><p>시간→스폰/속도 배율 · Lv 1~10</p></div>
+        <div class="mod"><code>collision.js</code><p>원-원 / 원-선분 판정</p></div>
+        <div class="mod"><code>scoring.js</code><p>점수 계산 순수 함수</p></div>
+        <div class="mod"><code>ranking.js</code><p>닉네임 정규화 · 최고점 판정</p></div>
+        <div class="mod"><code>firebase.js</code><p>Firestore 저장/조회</p></div>
+        <div class="mod"><code>particles.js</code><p>트레일 · 폭발 · 배경 먼지</p></div>
+        <div class="mod"><code>hud.js</code><p>HP · 점수 · 별 · 피버 · Lv · 흔들림</p></div>
+        <div class="mod"><code>input.js</code><p>포인터/터치 → 목표 좌표</p></div>
+        <div class="mod"><code>audio.js</code><p>오디오 로드(없으면 무음)</p></div>
+        <div class="mod"><code>ui.js</code><p>시작/인트로/게임오버 오버레이</p></div>
+      </div>
+      <h3>테스트 전략</h3>
+      <ul class="clean">
+        <li>브라우저 없이 <code>node --test</code>로 순수 로직만 검증 — 점수 곡선, 난이도 램프, HP→비주얼 매핑, 최고점 판정, 소나기 x분산.</li>
+        <li>Canvas 렌더·모달 토글은 유닛 대상이 아니라 실제 실행 스모크로 확인.</li>
+        <li>현재 <strong>42개</strong> 테스트 전부 통과.</li>
+      </ul>
+    </section>
+
+    <!-- 06 -->
+    <section id="trouble" class="col">
+      <p class="kicker">06 · 트러블슈팅</p>
+      <h2>실제로 부딪힌 문제들</h2>
+      <p class="section-lead">증상 → 원인 → 해결 순으로 정리했습니다. 대부분 상태머신 전환과 비동기 경계에서 나왔습니다.</p>
+
+      <div class="ts">
+        <article class="case">
+          <span class="cn">CASE 01</span>
+          <h4>게임오버 후에도 화면 흔들림이 계속 남음</h4>
+          <dl>
+            <dt class="symptom">증상</dt><dd>HP가 0이 됐는데 마지막 피격의 화면 흔들림이 게임오버 화면까지 이어짐.</dd>
+            <dt class="cause">원인</dt><dd><code>update()</code>가 <code>scene !== 'PLAYING'</code>에서 조기 <code>return</code> → 그 뒤의 <code>shake.update(dt)</code>가 호출되지 않아 흔들림 값이 감쇠되지 못함.</dd>
+            <dt class="fix">해결</dt><dd><code>onGameOver()</code> 진입 시 <code>shake.t = 0; shake.intensity = 0</code>으로 즉시 정지.</dd>
+          </dl>
+          <span class="commit">53da2b4</span>
+        </article>
+
+        <article class="case">
+          <span class="cn">CASE 02</span>
+          <h4>‘시작화면으로’ 눌렀는데 뒤에 직전 게임 잔상</h4>
+          <dl>
+            <dt class="symptom">증상</dt><dd>홈으로 돌아가면 시작 화면 뒤 배경에 방금 하던 게임의 엔티티가 남아 비침.</dd>
+            <dt class="cause">원인</dt><dd><code>onHome</code>이 씬만 <code>START</code>로 바꾸고 게임 상태·엔티티 배열을 초기화하지 않음.</dd>
+            <dt class="fix">해결</dt><dd><code>onHome</code>에서 <code>resetGame()</code>을 호출해 잔상 제거.</dd>
+          </dl>
+          <span class="commit">9142399</span>
+        </article>
+
+        <article class="case">
+          <span class="cn">CASE 03</span>
+          <h4>랭킹 제출이 실패하면 게임오버 흐름이 꼬임</h4>
+          <dl>
+            <dt class="symptom">증상</dt><dd>네트워크·Firebase 실패 시 랭킹이 안 뜨거나, 비동기 응답 경합으로 화면 상태가 어긋남.</dd>
+            <dt class="cause">원인</dt><dd>제출/조회 실패 처리와 비동기 경합(닉네임·셰이크·씬 전환) 가드가 부족.</dd>
+            <dt class="fix">해결</dt><dd>제출이 실패해도 순위 표시는 유지, 셰이크·닉네임·비동기 가드를 보강. “랭킹을 불러올 수 없어요” 폴백으로 게임 진행엔 영향 없음.</dd>
+          </dl>
+          <span class="commit">5792b7f</span>
+        </article>
+
+        <article class="case">
+          <span class="cn">CASE 04</span>
+          <h4>소나기가 한곳에 뭉침 + 그걸 잡아야 할 테스트가 무의미</h4>
+          <dl>
+            <dt class="symptom">증상</dt><dd>소나기 빗방울이 겹쳐 떨어짐. 게다가 간격 테스트가 어떤 값이든 통과해 버그를 못 잡음.</dd>
+            <dt class="cause">원인</dt><dd>스폰 x좌표가 뭉침. 테스트는 <strong>인덱스별 상수 rng</strong>를 써서 지터가 상쇄 → 항상 통과하는 껍데기 테스트였음.</dd>
+            <dt class="fix">해결</dt><dd>폭을 <code>n</code>등분한 셀 중앙 ± 지터로 균등 분산(<code>rainXPositions</code>). 테스트도 인덱스별 다른 난수를 주고 각 방울이 자기 셀 안에 있는지 검증하도록 교체.</dd>
+          </dl>
+          <span class="commit">2ebd395 · 50892e4</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section id="tuning" class="col">
+      <p class="kicker">07 · 밸런스</p>
+      <h2>수치는 한 번에 정해지지 않는다</h2>
+      <p class="section-lead">플레이 감을 보며 올렸다가 되돌리기를 반복했습니다. <code>config.js</code>에 값을 모아둔 설계가 이 반복을 값싸게 만들었습니다.</p>
+      <ul class="tune">
+        <li><span class="h">레이저 즉사로 전환</span><span class="c">f20bffe</span><p>붉은 빛은 데미지가 아니라 즉시 게임오버로. 일반 장애물 15→10, 별 회복 10→5로 재조정.</p></li>
+        <li><span class="h">폰트·추적속도 원복</span><span class="c">f20bffe</span><p>타이틀 Jua 폰트를 기본폰트로 되돌리고, 유령 추적 <code>lerp</code>도 0.09→0.12로 원복.</p></li>
+        <li><span class="h">난이도 상향</span><span class="c">94f611b</span><p>먼지 20→30, 빗방울 10→20으로 데미지 강화. 소나기 개수도 5~8개로 상향 시도.</p></li>
+        <li><span class="h">빗방울 개수 원복</span><span class="c">22c778d</span><p>데미지 상향은 유지하되, 빗방울 밀도는 원래값 <strong>3~5개</strong>로 되돌림 — 밀도는 원래 감이 더 나았음.</p></li>
+      </ul>
+
+      <h3>스코프 밖으로 미룬 것 (YAGNI)</h3>
+      <div class="yagni">
+        <span>다국어 지원</span><span>로그인/계정</span><span>리더보드 페이징</span><span>리플레이</span>
+        <span>도전과제</span><span>설정 화면</span><span>BGM/효과음 제작</span><span>반응형 재설계</span>
+      </div>
+    </section>
+
+    <footer class="col">
+      <p><b>루미 (Lumi)</b> — 별빛을 모으는 아기 유령 · Vanilla JS · Canvas 2D · Firebase.<br>
+      본 문서는 설계 문서, 구현 계획, 커밋 이력을 바탕으로 기획 → 구현 → 트러블슈팅을 한 장으로 정리한 것입니다.</p>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+  // theme toggle (media query default → explicit override)
+  (function () {
+    var btn = document.getElementById('themeToggle');
+    var root = document.documentElement;
+    btn.addEventListener('click', function () {
+      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var cur = root.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+      root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    });
+  })();
+
+  // subtle starfield — the game's floating dust, at rest
+  (function () {
+    var canvas = document.getElementById('sky');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ctx = canvas.getContext('2d');
+    var stars = [], W, H, dpr;
+    function isLight() {
+      var t = document.documentElement.getAttribute('data-theme');
+      if (t) return t === 'light';
+      return window.matchMedia('(prefers-color-scheme: light)').matches;
+    }
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = canvas.clientWidth; H = canvas.clientHeight;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var n = Math.round(W * H / 11000);
+      stars = [];
+      for (var i = 0; i < n; i++) {
+        stars.push({
+          x: Math.random() * W, y: Math.random() * H,
+          r: Math.random() * 1.4 + 0.3,
+          base: Math.random() * 0.5 + 0.2,
+          tw: Math.random() * Math.PI * 2,
+          sp: Math.random() * 0.6 + 0.2
+        });
+      }
+    }
+    function draw(t) {
+      var light = isLight();
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < stars.length; i++) {
+        var s = stars[i];
+        var a = s.base + (reduce ? 0 : Math.sin(t * 0.001 * s.sp + s.tw) * 0.22);
+        if (a < 0.04) a = 0.04;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+        ctx.fillStyle = light
+          ? 'rgba(122,86,214,' + (a * 0.5) + ')'
+          : 'rgba(255,224,160,' + a + ')';
+        ctx.fill();
+      }
+      if (!reduce) requestAnimationFrame(draw);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    if (reduce) draw(0); else requestAnimationFrame(draw);
+  })();
+</script>
