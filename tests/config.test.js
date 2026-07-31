@@ -6,7 +6,7 @@ test('config: 화면·HP 기본값', () => {
   assert.equal(CONFIG.WIDTH, 450);
   assert.equal(CONFIG.HEIGHT, 800);
   assert.equal(CONFIG.hp.max, 100);
-  assert.equal(CONFIG.hp.hitDamage, 10);
+  assert.equal(CONFIG.hp.hitDamage, 20);
   assert.equal(CONFIG.hp.starHeal, 5);
 });
 

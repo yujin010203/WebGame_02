@@ -41,17 +41,17 @@ test('레이저 경고(warn) 상태는 충돌로 치지 않음', () => {
   assert.equal(field.laserHitsPlayer(player), false);
 });
 
-test('오브(먼지) 충돌: nonLaserDamage=20 (빗방울보다 10 더 아픔)', () => {
+test('오브(먼지) 충돌: nonLaserDamage=30 (빗방울보다 10 더 아픔)', () => {
   const field = new ObstacleField();
   const player = { x: 200, y: 200, radius: 22 };
   field.list.push({ kind: 'orb', x: 200, y: 200, radius: 16, speed: 70, life: 5 });
-  assert.equal(field.nonLaserDamage(player), 20);
+  assert.equal(field.nonLaserDamage(player), 30);
   assert.equal(field.laserHitsPlayer(player), false);
 });
 
-test('빗방울(소나기) 충돌: nonLaserDamage=10', () => {
+test('빗방울(소나기) 충돌: nonLaserDamage=20', () => {
   const field = new ObstacleField();
   const player = { x: 200, y: 200, radius: 22 };
   field.list.push({ kind: 'rain', x: 200, y: 200, radius: 5, speed: 320 });
-  assert.equal(field.nonLaserDamage(player), 10);
+  assert.equal(field.nonLaserDamage(player), 20);
 });

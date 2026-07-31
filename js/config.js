@@ -7,7 +7,7 @@ export const CONFIG = {
   hp: {
     max: 100,
     start: 100,
-    hitDamage: 10,
+    hitDamage: 20,      // 빗방울(소나기) 데미지
     starHeal: 5,
     invulnSec: 1,       // 피격 후 무적 시간
     dangerRatio: 0.2,   // 이하에서 깜빡임
@@ -41,7 +41,7 @@ export const CONFIG = {
 
   obstacle: {
     laser: { warnSec: 1, activeSec: 0.35, thickness: 14 },
-    orb: { speed: 70, radius: 16, lifeSec: 5, damage: 20 }, // 먼지: 빗방울(hp.hitDamage=10)보다 10 더 아픔
+    orb: { speed: 70, radius: 16, lifeSec: 5, damage: 30 }, // 먼지: 빗방울(hp.hitDamage=20)보다 10 더 아픔
     rain: { speed: 320, radius: 5 },
     baseSpawnIntervalSec: 1.6,
   },
