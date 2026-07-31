@@ -59,7 +59,7 @@ export class ObstacleField {
         life: CONFIG.obstacle.orb.lifeSec,
       });
     } else {
-      const n = 5 + Math.floor(Math.random() * 4); // 5~8개
+      const n = 3 + Math.floor(Math.random() * 3); // 3~5개
       const xs = rainXPositions(n, W);
       for (let i = 0; i < n; i++) {
         this.list.push({
