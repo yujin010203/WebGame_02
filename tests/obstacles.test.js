@@ -31,7 +31,7 @@ test('레이저 활성 충돌: laserHitsPlayer만 true (즉사 판정)', () => {
   const player = { x: 200, y: 100, radius: 22 };
   field.list.push({ kind: 'laser', state: 'active', t: 0, x1: 0, y1: 100, x2: 450, y2: 100 });
   assert.equal(field.laserHitsPlayer(player), true);
-  assert.equal(field.nonLaserHitsPlayer(player), false);
+  assert.equal(field.nonLaserDamage(player), 0);
 });
 
 test('레이저 경고(warn) 상태는 충돌로 치지 않음', () => {
@@ -41,10 +41,17 @@ test('레이저 경고(warn) 상태는 충돌로 치지 않음', () => {
   assert.equal(field.laserHitsPlayer(player), false);
 });
 
-test('오브 충돌: nonLaserHitsPlayer만 true (HP 감소 판정)', () => {
+test('오브(먼지) 충돌: nonLaserDamage=20 (빗방울보다 10 더 아픔)', () => {
   const field = new ObstacleField();
   const player = { x: 200, y: 200, radius: 22 };
   field.list.push({ kind: 'orb', x: 200, y: 200, radius: 16, speed: 70, life: 5 });
-  assert.equal(field.nonLaserHitsPlayer(player), true);
+  assert.equal(field.nonLaserDamage(player), 20);
   assert.equal(field.laserHitsPlayer(player), false);
+});
+
+test('빗방울(소나기) 충돌: nonLaserDamage=10', () => {
+  const field = new ObstacleField();
+  const player = { x: 200, y: 200, radius: 22 };
+  field.list.push({ kind: 'rain', x: 200, y: 200, radius: 5, speed: 320 });
+  assert.equal(field.nonLaserDamage(player), 10);
 });

@@ -83,9 +83,15 @@ export class ObstacleField {
     return this.list.some((o) => o.kind === 'laser' && this._overlapPlayer(o, player));
   }
 
-  // 레이저 외 장애물(오브/소나기) 충돌 — HP 감소
-  nonLaserHitsPlayer(player) {
-    return this.list.some((o) => o.kind !== 'laser' && this._overlapPlayer(o, player));
+  // 레이저 외 장애물 충돌 데미지 — 먼지(오브)는 빗방울(소나기, hp.hitDamage)보다 10 더 아픔. 0이면 충돌 없음
+  nonLaserDamage(player) {
+    let dmg = 0;
+    for (const o of this.list) {
+      if (o.kind === 'laser' || !this._overlapPlayer(o, player)) continue;
+      const d = o.kind === 'orb' ? CONFIG.obstacle.orb.damage : CONFIG.hp.hitDamage;
+      if (d > dmg) dmg = d;
+    }
+    return dmg;
   }
 
   destroyAll(burst) {

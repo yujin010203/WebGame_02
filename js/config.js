@@ -41,15 +41,15 @@ export const CONFIG = {
 
   obstacle: {
     laser: { warnSec: 1, activeSec: 0.35, thickness: 14 },
-    orb: { speed: 70, radius: 16, lifeSec: 5 },
+    orb: { speed: 70, radius: 16, lifeSec: 5, damage: 20 }, // 먼지: 빗방울(hp.hitDamage=10)보다 10 더 아픔
     rain: { speed: 320, radius: 5 },
     baseSpawnIntervalSec: 1.6,
   },
 
   difficulty: {
-    rampSec: 120,        // 이 시간에 걸쳐 최대 난이도로 램프업
-    maxSpeedMult: 2.2,   // 이동 속도 최대 배율
-    minSpawnMult: 0.45,  // 스폰 간격 최소 배율(=더 자주)
+    rampSec: 180,        // 이 시간에 걸쳐 최대 난이도로 램프업 (=Lv10 도달 시간)
+    maxSpeedMult: 2.8,   // 이동 속도 최대 배율
+    minSpawnMult: 0.35,  // 스폰 간격 최소 배율(=더 자주)
   },
 
   items: {

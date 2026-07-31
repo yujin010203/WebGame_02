@@ -129,12 +129,18 @@ function update(dt) {
   if (fever.active) {
     state.feverKills += obstacles.feverCollide(player, burst);
   } else if (obstacles.laserHitsPlayer(player)) {
-    // 빨간선(레이저): 방어막이 있으면 1회 막고, 없으면 즉시 게임오버
-    if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
-    else { player.hp = 0; shake.trigger(12); audio.play('hit'); }
-  } else if (obstacles.nonLaserHitsPlayer(player)) {
-    if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
-    else if (player.hit(CONFIG.hp.hitDamage)) { shake.trigger(12); audio.play('hit'); }
+    // 빨간선(레이저): 무적·방어막이 있으면 막고, 없으면 즉시 게임오버
+    // (레이저는 0.35초간 유지 → invulnSec을 봐야 방어막이 다음 프레임에 뚫리지 않음)
+    if (player.invulnSec <= 0) {
+      if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
+      else { player.hp = 0; shake.trigger(12); audio.play('hit'); }
+    }
+  } else {
+    const dmg = obstacles.nonLaserDamage(player);
+    if (dmg > 0) {
+      if (player.shielded) { player.shielded = false; player.invulnSec = CONFIG.hp.invulnSec; }
+      else if (player.hit(dmg)) { shake.trigger(12); audio.play('hit'); }
+    }
   }
   fever.update(dt);
   burst.update(dt);

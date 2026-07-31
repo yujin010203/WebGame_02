@@ -7,10 +7,10 @@ import { normalizeNickname, isNewBest } from './ranking.js';
 
 // ↓↓↓ Firebase 콘솔에서 발급받은 값으로 교체 (docs/superpowers/FIREBASE_SETUP.md 참고)
 const firebaseConfig = {
-  apiKey: '',
-  authDomain: '',
-  projectId: '',
-  appId: '',
+  apiKey: 'AIzaSyD-b1gyyxZEjXpnc4GQPXOMZiNy4kl8Nns',
+  authDomain: 'ghostgame-58f91.firebaseapp.com',
+  projectId: 'ghostgame-58f91',
+  appId: '1:758604802054:web:9cb50c4fbb4b7af562fb87',
 };
 
 let db = null;
